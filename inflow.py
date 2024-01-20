@@ -7,10 +7,11 @@ That's it! Runs in O(NK) where N = # characters and K = width
 """
 import sys
 
-PREFIX = set(" >:-*|#$%'\"") # characters allowed to be in a prefix
+PREFIX = set(" >:-*|#$%'\"")  # characters allowed to be in a prefix
+
 
 def get_lines(par: list, width: int) -> list:
-    """ Compute optimal line lengths with forward greedy. """
+    """Compute optimal line lengths with forward greedy."""
     lines, i, count = [0], 0, 0
     while i < len(par):
         x, v = 0, len(par[i])
@@ -25,10 +26,11 @@ def get_lines(par: list, width: int) -> list:
 
     return lines
 
+
 def vardp(par: list, lines: list, width: int) -> list:
-    """ Computes the minimum variance, constrained to use optimal lines. """
+    """Computes the minimum variance, constrained to use optimal lines."""
     # state (index, variance, sum of x^2 terms, sum of x)
-    dp = [None]*(len(par) + 1)
+    dp = [None] * (len(par) + 1)
     dp[0] = (0, 0, 0, 0)
     for i in range(1, len(par) + 1):
         k, best, sum_x2, sum_x, x = 0, float("inf"), 0, 0, 0
@@ -39,11 +41,11 @@ def vardp(par: list, lines: list, width: int) -> list:
                 x = v
                 _, _, sum_x2j, sum_xj = dp[j]
                 n = 1 + lines[j]
-                sum_x2j += x*x
+                sum_x2j += x * x
                 sum_xj += x
                 # Var[X] = E[X^2] - E[X]^2
-                mean = sum_xj/n
-                var = sum_x2j/n - mean*mean
+                mean = sum_xj / n
+                var = sum_x2j / n - mean * mean
                 if var < best and n == lines[i]:
                     k, best, sum_x2, sum_x = j, var, sum_x2j, sum_xj
             else:
@@ -52,8 +54,9 @@ def vardp(par: list, lines: list, width: int) -> list:
 
     return dp
 
+
 def process(par: list, width: int, prefix: str) -> str:
-    """ Takes in a paragraph and returns a string with a new line width. """
+    """Takes in a paragraph and returns a string with a new line width."""
     if len(par) == 0:
         return ""
     assert max(map(len, par)) <= width, "line too long"
@@ -64,12 +67,12 @@ def process(par: list, width: int, prefix: str) -> str:
     if lines[-1] <= 3:
         k = len(par)
     else:
-        best, k, x = [float("inf")]*2, [0]*2, 0
+        best, k, x = [float("inf")] * 2, [0] * 2, 0
         for i in range(len(par) - 1, -1, -1):
             x += (x != 0) + len(par[i])
             if x > width:
                 break
-            b = x <= dp[i][-1]/lines[i]
+            b = x <= dp[i][-1] / lines[i]
             if lines[i] + 1 == lines[-1] and dp[i][1] < best[b]:
                 best[b], k[b] = dp[i][1], i
         k = k[1] if best[1] != float("inf") else k[0]
@@ -84,8 +87,9 @@ def process(par: list, width: int, prefix: str) -> str:
     # add prefix to each line
     return "\n".join(map(lambda x: prefix + x, out[::-1]))
 
+
 def parse_prefix(lines: list) -> tuple:
-    """ Parses lines into a list of tokens, taking into account prefixes. """
+    """Parses lines into a list of tokens, taking into account prefixes."""
     # find prefix, where a prefix is defined as a series
     # of the same character, if the character is in PREFIX
     prefix = []
@@ -102,9 +106,10 @@ def parse_prefix(lines: list) -> tuple:
 
     par = []
     for line in lines:
-        par += line[len(prefix):].split()
+        par += line[len(prefix) :].split()
 
     return par, prefix
+
 
 if __name__ == "__main__":
     # read command line arguments - one parameter, width
@@ -126,4 +131,3 @@ if __name__ == "__main__":
         pars.append((par, width - len(prefix), prefix))
 
     print("\n".join(map(lambda x: process(*x), pars)))
-
