@@ -107,23 +107,25 @@ def parse_prefix(lines: list[str]) -> tuple[list[str], str]:
     return par, prefix
 
 
+def parse_lines(lines, width: int) -> list[tuple[list[str], int, str]]:
+    """Read input lines into paragraphs, making empty lines []."""
+    pars, par = [], []
+    for line in lines:
+        if line != "\n":
+            par.append(line)
+        else:
+            if len(par) > 0:
+                par, prefix = parse_prefix(par)
+                pars.append((par, width - len(prefix), prefix))
+            pars.append(([], width, ""))
+            par, par = [], []
+    if len(par) > 0:
+        par, prefix = parse_prefix(par)
+        pars.append((par, width - len(prefix), prefix))
+    return pars
+
+
 if __name__ == "__main__":
     # read command line arguments - one parameter, width
     width = int(sys.argv[1]) if len(sys.argv) > 1 else 79
-
-    # read input into paragraph blocks, making empty lines []
-    pars, lines = [], []
-    for line in sys.stdin:
-        if line != "\n":
-            lines.append(line)
-        else:
-            if len(lines) > 0:
-                par, prefix = parse_prefix(lines)
-                pars.append((par, width - len(prefix), prefix))
-            pars.append(([], width, ""))
-            par, lines = [], []
-    if len(lines) > 0:
-        par, prefix = parse_prefix(lines)
-        pars.append((par, width - len(prefix), prefix))
-
-    print("\n".join(map(lambda x: process(*x), pars)))
+    print("\n".join(map(lambda x: process(*x), parse_lines(sys.stdin, width))))
