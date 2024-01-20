@@ -1,10 +1,3 @@
-/* clang++ -O3 far.cpp -o far
- * A simple utility that reformats paragraphs to a fixed width.
- * 1. Minimize the variance of the lengths of each line...
- * 2. ... subject to the constraint that the number of lines is optimal
- * 3. Ignore the last line, while making sure it's shorter than average
- * That's it! Runs in O(NK) where N = # characters and K = width
- */
 #include <cassert>
 #include <iostream>
 #include <limits>
@@ -12,88 +5,84 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
-using namespace std;
 
-// renames
-#define append push_back
-#define last back()
-#define mp make_pair
-#define fi first
-#define se second
-#define el '\n'
-#define arg const &
-#define list vector
-// change to long if you run out of memory
+using std::pair;
+using std::string;
+using std::vector;
+
 typedef long long ll;
-typedef string str;
-typedef list<ll> li;
-typedef list<string> ls;
-typedef pair<ll, ll> pi;
-// misc
-#define For(x, n) for (auto &x : n)
-#define print(x) cout << (x) << '\n'
-#define len(l) ((int)l.size())
-#define in(x, s) (s.find(x) != s.end())
+typedef vector<ll> li;
+typedef vector<string> ls;
+typedef std::pair<ll, ll> pi;
 
-// globals
-const ll INF = numeric_limits<ll>::max(); // infinity, but not really
+// infinity, but not really
+const ll INF = std::numeric_limits<ll>::max();
 // characters allowed to be in a prefix
-const unordered_set<char> PREFIX = {' ', '>', ':', '-', '*', '|',
-                                    '#', '$', '%', '"', '\''};
+const std::unordered_set<char> PREFIX = {
+    ' ', '>', ':', '-', '*', '|', '#', '$', '%', '"', '\'',
+};
 
 // fraction methods
-inline ll det(pi arg x, pi arg y) { return x.fi * y.se - x.se * y.fi; } // ad-bc
-inline pi mul(pi arg x, pi arg y) {
-  return mp(x.fi * y.fi, x.se * y.se);
-} // x*y
-inline pi sub(pi arg x, pi arg y) {
-  return mp(det(x, y), x.se * y.se);
-} // x - y
-inline bool cmp(pi arg x, pi arg y) { return det(x, y) < 0; } // x < y
+inline ll det(pi const &x, pi const &y) {
+  /* ad - bc */
+  return x.first * y.second - x.second * y.first;
+}
+inline pi mul(pi const &x, pi const &y) {
+  /* x * y */
+  return std::make_pair(x.first * y.first, x.second * y.second);
+}
+inline pi sub(pi const &x, pi const &y) {
+  /* x - y */
+  return std::make_pair(det(x, y), x.second * y.second);
+}
+inline bool cmp(pi const &x, pi const &y) {
+  /* x < y */
+  return det(x, y) < 0;
+}
 
-pair<li, ll> get_lines(ls arg para, ll WIDTH) {
+pair<li, ll> get_lines(ls const &para, ll width) {
   /* Compute optimal line lengths with forward greedy. */
-  ll i, num, x, v, chars;
+  std::size_t i;
+  ll num, x, v, chars;
   i = 0;
   num = 0;
   chars = 0;
   li lines = {0};
-  while (i < len(para)) {
+  while (i < para.size()) {
     x = 0;
-    v = len(para[i]);
+    v = para[i].size();
     num++;
-    while (v <= WIDTH and i + 1 < len(para)) {
+    while (v <= width and i + 1 < para.size()) {
       i++;
       x = v;
-      v += 1 + len(para[i]);
-      lines.append(num);
+      v += 1 + para[i].size();
+      lines.push_back(num);
     }
     chars += x;
-    if (v <= WIDTH) {
+    if (v <= width) {
       i++;
       chars += v - x;
-      lines.append(num);
+      lines.push_back(num);
     }
   }
-  return mp(lines, chars);
+  return std::make_pair(lines, chars);
 }
 
-list<pi> vardp(ls arg para, li arg lines, ll WIDTH) {
+vector<pi> vardp(ls const &para, li const &lines, ll width) {
   /* Computes the minimum variance, constrained to use optimal lines.
    * Minimizing variance is equivalent to minimizing the sum of squares,
    * if the number of lines is constrained. */
-  list<pi> dp = {mp(0, 0)};
-  ll i, j, x, v, k, kj, sum_x2, sum_x2j;
-  for (i = 1; i < len(para) + 1; i++) {
+  vector<pi> dp = {std::make_pair(0, 0)};
+  ll j, x, v, k, sum_x2, sum_x2j;
+  for (size_t i = 1; i < para.size() + 1; i++) {
     k = 0;
     x = 0;
     sum_x2 = INF;
     for (j = i - 1; j >= 0; j--) {
-      v = x + (x != 0) + len(para[j]);
-      if (v <= WIDTH) {
+      v = x + (x != 0) + para[j].size();
+      if (v <= width) {
         x = v;
-        kj = dp[j].fi;
-        sum_x2j = dp[j].se;
+        sum_x2j = dp[j].second;
         sum_x2j += x * x;
         if (sum_x2j < sum_x2 and lines[j] + 1 == lines[i]) {
           k = j;
@@ -103,36 +92,37 @@ list<pi> vardp(ls arg para, li arg lines, ll WIDTH) {
         break;
       }
     }
-    dp.append(mp(k, sum_x2));
+    dp.push_back(std::make_pair(k, sum_x2));
   }
   return dp;
 }
 
-ll process_dp(ls arg para, li arg lines, ll chars, list<pi> arg dp, ll WIDTH) {
+ll process_dp(ls const &para, li const &lines, ll chars, vector<pi> const &dp,
+              ll width) {
   /* Finds an ending index to minimize variance, ignoring the last line. */
   // if the paragraph is less than three lines long, don't ignore the last line
-  if (lines.last <= 3) {
-    return len(para);
+  if (lines.back() <= 3) {
+    return para.size();
   }
-  ll i, x, kl, kg;
+  ll x, kl, kg;
   pi bestl, bestg, mean, var;
   // find best last line starting point, initialize best to infinity (1/0)
   // maintain two solutions: last line shorter than average, last line greater
-  bestl = mp(1, 0);
-  bestg = mp(1, 0);
+  bestl = std::make_pair(1, 0);
+  bestg = std::make_pair(1, 0);
   kl = 0;
   kg = 0;
   x = 0;
-  for (i = len(para) - 1; i >= 0; i--) {
-    x += (x != 0) + len(para[i]);
-    if (x > WIDTH) {
+  for (size_t i = para.size() - 1; i >= 0; i--) {
+    x += (x != 0) + para[i].size();
+    if (x > width) {
       break;
     }
     // Var[X] = E[X^2] - E[X]^2
-    mean = mp(chars - x, lines[i]);
-    var = sub(mp(dp[i].se, lines[i]), mul(mean, mean));
-    if (lines[i] + 1 == lines.last) {
-      if (det(mp(x, 1), mean) <= 0) {
+    mean = std::make_pair(chars - x, lines[i]);
+    var = sub(std::make_pair(dp[i].second, lines[i]), mul(mean, mean));
+    if (lines[i] + 1 == lines.back()) {
+      if (det(std::make_pair(x, 1), mean) <= 0) {
         if (cmp(var, bestl)) {
           bestl = var;
           kl = i;
@@ -146,23 +136,22 @@ ll process_dp(ls arg para, li arg lines, ll chars, list<pi> arg dp, ll WIDTH) {
     }
   }
   // use shorter last line if it exists, otherwise default to greater
-  return (bestl.se != 0) ? kl : kg;
+  return (bestl.second != 0) ? kl : kg;
 }
 
-pair<ls, str> parse_prefix(ls arg lines, ll WIDTH) {
-  /* Parses lines into a list of tokens, taking into account prefixes. */
+pair<ls, string> parse_prefix(ls const &lines, ll width) {
+  /* Parses lines into a vector of tokens, taking into account prefixes. */
   // find prefix, where a prefix is defined as a series
   // of the same character, if the character is in PREFIX
   ls para;
-  str prefix;
-  ll ch;
+  string prefix;
   bool end = false;
-  for (ch = 0; ch < len(lines[0]); ch++) {
-    if (not in(lines[0][ch], PREFIX)) {
+  for (size_t ch = 0; ch < lines[0].size(); ch++) {
+    if (PREFIX.find(lines[0][ch]) == PREFIX.end()) {
       break;
     }
-    For(line, lines) {
-      if (ch >= len(line) or line[ch] != lines[0][ch]) {
+    for (auto &line : lines) {
+      if (ch >= line.size() or line[ch] != lines[0][ch]) {
         end = true;
         break;
       }
@@ -174,81 +163,85 @@ pair<ls, str> parse_prefix(ls arg lines, ll WIDTH) {
     }
   }
   // remove prefix from each line and load into tokens
-  WIDTH -= len(prefix);
-  For(line, lines) {
-    istringstream ss(line.substr(len(prefix)));
-    if (len(line) != 0) {
-      str token;
+  width -= prefix.size();
+  for (auto &line : lines) {
+    std::istringstream ss(line.substr(prefix.size()));
+    if (line.size() != 0) {
+      string token;
       while (ss >> token) {
-        if (len(token) > WIDTH) {
-          print("AssertionError: word too long: " + token);
+        if ((ll)token.size() > width) {
+          std::cout << "AssertionError: word too long: " + token << std::endl;
         }
-        assert(len(token) <= WIDTH);
-        para.append(token);
+        assert((ll)token.size() <= width);
+        para.push_back(token);
       }
     }
   }
-  return mp(para, prefix);
+  return std::make_pair(para, prefix);
 }
 
-void process(ls arg lines, ll WIDTH) {
+void process(ls const &lines, ll width) {
   /* Processes lines into a final paragraph and prints it out. */
   ls para;
-  str prefix;
-  list<pi> dp;
-  ll i, j, k, chars;
-  li line_lengths, out;
-  tie(para, prefix) = parse_prefix(lines, WIDTH);    // process prefix
-  WIDTH -= len(prefix);                              // don't include prefix
-  tie(line_lengths, chars) = get_lines(para, WIDTH); // generate line lengths
-  dp = vardp(para, line_lengths, WIDTH);             // run dynamic programming
-  k = process_dp(para, line_lengths, chars, dp, WIDTH); // process output
+  string prefix;
+  vector<pi> dp;
+  ll chars;
+  size_t k;
+  li line_lengths;
+  vector<size_t> out;
+  tie(para, prefix) = parse_prefix(lines, width);
+  // don't include prefix
+  width -= prefix.size();
+  tie(line_lengths, chars) = get_lines(para, width);
+  dp = vardp(para, line_lengths, width);
+  k = process_dp(para, line_lengths, chars, dp, width);
 
   // generate indexes in reverse order
   out = {k};
-  while (out.last > 0) {
-    out.append(dp[out.last].fi);
+  while (out.back() > 0) {
+    out.push_back(dp[out.back()].first);
   }
   // print out each line, given by contiguous segments of the paragraph
-  for (i = len(out) - 1; i > 0; i--) {
-    cout << prefix;
-    for (j = out[i]; j < out[i - 1] - 1; j++) {
-      cout << para[j] << ' ';
+  for (size_t i = out.size() - 1; i > 0; i--) {
+    std::cout << prefix;
+    for (size_t j = out[i]; j < out[i - 1] - 1; j++) {
+      std::cout << para[j] << ' ';
     }
-    print(para[out[i - 1] - 1]);
+    std::cout << para[out[i - 1] - 1] << '\n';
   }
   // print last line, if it exists
-  if (k < len(para)) {
-    cout << prefix;
-    for (i = k; i < len(para) - 1; i++) {
-      cout << para[i] << ' ';
+  if (k < para.size()) {
+    std::cout << prefix;
+    for (size_t i = k; i < para.size() - 1; i++) {
+      std::cout << para[i] << ' ';
     }
-    print(para.last);
+    std::cout << para.back() << '\n';
   }
 }
 
 int main(int argc, char *argv[]) {
-  ios::sync_with_stdio(false);
-  cin.tie(NULL); // fast cin
+  // fast cin
+  std::ios::sync_with_stdio(false);
+  std::cin.tie(NULL);
 
-  // read command line arguments - one parameter, WIDTH
-  ll WIDTH = (argc > 1) ? (ll)stoi(argv[1]) : 79;
+  // read command line arguments - one parameter, width
+  ll width = (argc > 1) ? (ll)std::stoi(argv[1]) : 79;
 
   // read input into paragraph blocks, maintaing empty lines
   ls lines;
-  for (str line; getline(cin, line);) {
-    if (len(line) > 0) {
-      lines.append(line);
+  for (string line; getline(std::cin, line);) {
+    if (line.size() > 0) {
+      lines.push_back(line);
     } else {
-      if (len(lines) > 0) {
-        process(lines, WIDTH);
+      if (lines.size() > 0) {
+        process(lines, width);
       }
       lines.clear();
-      cout << el;
+      std::cout << '\n';
     }
   }
-  if (len(lines) > 0) {
-    process(lines, WIDTH);
+  if (lines.size() > 0) {
+    process(lines, width);
   }
 
   return 0;
