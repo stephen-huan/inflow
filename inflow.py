@@ -1,16 +1,10 @@
-"""
-A simple utility that reformats paragraphs to a fixed width.
-1. Minimize the variance of the lengths of each line...
-2. ...subject to the constraint that the number of lines is optimal
-3. Ignore the last line, while making sure it's shorter than average
-That's it! Runs in O(NK) where N = # characters and K = width
-"""
 import sys
 
-PREFIX = set(" >:-*|#$%'\"")  # characters allowed to be in a prefix
+# characters allowed to be in a prefix
+PREFIX = set(" >:-*|#$%'\"")
 
 
-def get_lines(par: list, width: int) -> list:
+def get_lines(par: list[str], width: int) -> list[int]:
     """Compute optimal line lengths with forward greedy."""
     lines, i, count = [0], 0, 0
     while i < len(par):
@@ -27,7 +21,9 @@ def get_lines(par: list, width: int) -> list:
     return lines
 
 
-def vardp(par: list, lines: list, width: int) -> list:
+def vardp(
+    par: list[str], lines: list[int], width: int
+) -> list[tuple[int, float, int, int]]:
     """Computes the minimum variance, constrained to use optimal lines."""
     # state (index, variance, sum of x^2 terms, sum of x)
     dp = [None] * (len(par) + 1)
@@ -55,7 +51,7 @@ def vardp(par: list, lines: list, width: int) -> list:
     return dp
 
 
-def process(par: list, width: int, prefix: str) -> str:
+def process(par: list[str], width: int, prefix: str) -> str:
     """Takes in a paragraph and returns a string with a new line width."""
     if len(par) == 0:
         return ""
@@ -88,7 +84,7 @@ def process(par: list, width: int, prefix: str) -> str:
     return "\n".join(map(lambda x: prefix + x, out[::-1]))
 
 
-def parse_prefix(lines: list) -> tuple:
+def parse_prefix(lines: list[str]) -> tuple[list[str], str]:
     """Parses lines into a list of tokens, taking into account prefixes."""
     # find prefix, where a prefix is defined as a series
     # of the same character, if the character is in PREFIX
