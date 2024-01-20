@@ -6,15 +6,16 @@ PREFIX = set(" >:-*|#$%'\"")
 
 def get_lines(par: list[str], width: int) -> list[int]:
     """Compute optimal line lengths with forward greedy."""
-    lines, i, count = [0], 0, 0
+    lines, count, i = [0], 0, 0
     while i < len(par):
-        x, v = 0, len(par[i])
+        # break onto a new line
+        line_width = len(par[i])
         count += 1
-        while i + 1 < len(par) and v <= width:
+        while i + 1 < len(par) and line_width <= width:
             i += 1
-            x, v = v, v + 1 + len(par[i])
             lines.append(count)
-        if v <= width:
+            line_width += 1 + len(par[i])
+        if line_width <= width:
             i += 1
             lines.append(count)
 
@@ -26,15 +27,14 @@ def vardp(
 ) -> list[tuple[int, float, int, int]]:
     """Computes the minimum variance, constrained to use optimal lines."""
     # state (index, variance, sum of x^2 terms, sum of x)
-    dp = [None] * (len(par) + 1)
-    dp[0] = (0, 0, 0, 0)
+    dp: list[tuple[int, float, int, int]] = [(0, 0.0, 0, 0)] * (len(par) + 1)
     for i in range(1, len(par) + 1):
-        k, best, sum_x2, sum_x, x = 0, float("inf"), 0, 0, 0
+        k, best, sum_x2, sum_x, x = -1, float("inf"), 0, 0, 0
         for j in range(i - 1, -1, -1):
             # add 1 for space, if the current line isn't empty
-            v = x + (x != 0) + len(par[j])
-            if v <= width:
-                x = v
+            line_width = x + (x != 0) + len(par[j])
+            if line_width <= width:
+                x = line_width
                 _, _, sum_x2j, sum_xj = dp[j]
                 n = 1 + lines[j]
                 sum_x2j += x * x
