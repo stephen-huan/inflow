@@ -6,13 +6,9 @@
 #include <unordered_set>
 #include <vector>
 
-using std::pair;
-using std::string;
-using std::vector;
-
 typedef long long ll;
-typedef vector<ll> li;
-typedef vector<string> ls;
+typedef std::vector<ll> li;
+typedef std::vector<std::string> ls;
 typedef std::pair<ll, ll> pi;
 
 // infinity, but not really
@@ -40,7 +36,7 @@ inline bool cmp(pi const &x, pi const &y) {
   return det(x, y) < 0;
 }
 
-pair<li, ll> get_lines(ls const &para, ll width) {
+std::pair<li, ll> get_lines(ls const &para, ll width) {
   /* Compute optimal line lengths with forward greedy. */
   std::size_t i;
   ll num, x, v, chars;
@@ -68,11 +64,11 @@ pair<li, ll> get_lines(ls const &para, ll width) {
   return std::make_pair(lines, chars);
 }
 
-vector<pi> vardp(ls const &para, li const &lines, ll width) {
+std::vector<pi> vardp(ls const &para, li const &lines, ll width) {
   /* Computes the minimum variance, constrained to use optimal lines.
    * Minimizing variance is equivalent to minimizing the sum of squares,
    * if the number of lines is constrained. */
-  vector<pi> dp = {std::make_pair(0, 0)};
+  std::vector<pi> dp = {std::make_pair(0, 0)};
   ll j, x, v, k, sum_x2, sum_x2j;
   for (size_t i = 1; i < para.size() + 1; i++) {
     k = 0;
@@ -97,8 +93,8 @@ vector<pi> vardp(ls const &para, li const &lines, ll width) {
   return dp;
 }
 
-ll process_dp(ls const &para, li const &lines, ll chars, vector<pi> const &dp,
-              ll width) {
+ll process_dp(ls const &para, li const &lines, ll chars,
+              std::vector<pi> const &dp, ll width) {
   /* Finds an ending index to minimize variance, ignoring the last line. */
   // if the paragraph is less than three lines long, don't ignore the last line
   if (lines.back() <= 3) {
@@ -139,12 +135,12 @@ ll process_dp(ls const &para, li const &lines, ll chars, vector<pi> const &dp,
   return (bestl.second != 0) ? kl : kg;
 }
 
-pair<ls, string> parse_prefix(ls const &lines, ll width) {
+std::pair<ls, std::string> parse_prefix(ls const &lines, ll width) {
   /* Parses lines into a vector of tokens, taking into account prefixes. */
   // find prefix, where a prefix is defined as a series
   // of the same character, if the character is in PREFIX
   ls para;
-  string prefix;
+  std::string prefix;
   bool end = false;
   for (size_t ch = 0; ch < lines[0].size(); ch++) {
     if (PREFIX.find(lines[0][ch]) == PREFIX.end()) {
@@ -167,7 +163,7 @@ pair<ls, string> parse_prefix(ls const &lines, ll width) {
   for (auto &line : lines) {
     std::istringstream ss(line.substr(prefix.size()));
     if (line.size() != 0) {
-      string token;
+      std::string token;
       while (ss >> token) {
         if ((ll)token.size() > width) {
           std::cout << "AssertionError: word too long: " + token << std::endl;
@@ -183,12 +179,12 @@ pair<ls, string> parse_prefix(ls const &lines, ll width) {
 void process(ls const &lines, ll width) {
   /* Processes lines into a final paragraph and prints it out. */
   ls para;
-  string prefix;
-  vector<pi> dp;
+  std::string prefix;
+  std::vector<pi> dp;
   ll chars;
   size_t k;
   li line_lengths;
-  vector<size_t> out;
+  std::vector<size_t> out;
   tie(para, prefix) = parse_prefix(lines, width);
   // don't include prefix
   width -= prefix.size();
@@ -229,7 +225,7 @@ int main(int argc, char *argv[]) {
 
   // read input into paragraph blocks, maintaing empty lines
   ls lines;
-  for (string line; getline(std::cin, line);) {
+  for (std::string line; getline(std::cin, line);) {
     if (line.size() > 0) {
       lines.push_back(line);
     } else {
