@@ -1,5 +1,7 @@
 import sys
 
+Block = tuple[list[str], int, str]
+
 # characters allowed to be in a prefix
 PREFIX = set(" >:-*|#$%'\"")
 
@@ -54,7 +56,7 @@ def vardp(
 def process(par: list[str], width: int, prefix: str) -> str:
     """Takes in a paragraph and returns a string with a new line width."""
     if len(par) == 0:
-        return ""
+        return prefix
     assert max(map(len, par)) <= width, "line too long"
 
     lines = get_lines(par, width)
@@ -84,8 +86,8 @@ def process(par: list[str], width: int, prefix: str) -> str:
     return "\n".join(map(lambda x: prefix + x, out[::-1]))
 
 
-def parse_prefix(lines: list[str]) -> tuple[list[str], str]:
-    """Parses lines into a list of tokens, taking into account prefixes."""
+def get_prefix(lines: list[str]) -> str:
+    """Finds the common prefix for the lines."""
     # find prefix, where a prefix is defined as a series
     # of the same character, if the character is in PREFIX
     prefix = []
@@ -98,16 +100,26 @@ def parse_prefix(lines: list[str]) -> tuple[list[str], str]:
             prefix.append(lines[0][ch])
             continue
         break
-    prefix = "".join(prefix)
-
-    par = []
-    for line in lines:
-        par += line[len(prefix) :].split()
-
-    return par, prefix
+    return "".join(prefix)
 
 
-def parse_lines(lines, width: int) -> list[tuple[list[str], int, str]]:
+def parse_prefix(lines: list[str], width: int) -> list[Block]:
+    """Parses lines into a list of tokens, taking into account prefixes."""
+    prefix = get_prefix(lines)
+    if len(prefix) == 0:
+        par = []
+        for line in lines:
+            par += line.split()
+        return [(par, width, prefix)]
+    else:
+        lines = [line[len(prefix) :] for line in lines]
+        return [
+            (par, width, prefix)
+            for par, width, _ in parse_lines(lines, width - len(prefix))
+        ]
+
+
+def parse_lines(lines, width: int) -> list[Block]:
     """Read input lines into paragraphs, making empty lines []."""
     pars, par = [], []
     for line in lines:
@@ -115,13 +127,11 @@ def parse_lines(lines, width: int) -> list[tuple[list[str], int, str]]:
             par.append(line)
         else:
             if len(par) > 0:
-                par, prefix = parse_prefix(par)
-                pars.append((par, width - len(prefix), prefix))
+                pars += parse_prefix(par, width)
             pars.append(([], width, ""))
             par, par = [], []
     if len(par) > 0:
-        par, prefix = parse_prefix(par)
-        pars.append((par, width - len(prefix), prefix))
+        pars += parse_prefix(par, width)
     return pars
 
 
