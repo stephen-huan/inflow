@@ -1,6 +1,7 @@
 import sys
 
 Block = tuple[list[str], int, str]
+State = tuple[int, float, int, int]
 
 # characters allowed to be in a prefix
 PREFIX = set(" >:-*|#$%'\"")
@@ -24,12 +25,10 @@ def get_lines(par: list[str], width: int) -> list[int]:
     return lines
 
 
-def vardp(
-    par: list[str], lines: list[int], width: int
-) -> list[tuple[int, float, int, int]]:
+def vardp(par: list[str], lines: list[int], width: int) -> list[State]:
     """Computes the minimum variance, constrained to use optimal lines."""
     # state (index, variance, sum of x^2 terms, sum of x)
-    dp: list[tuple[int, float, int, int]] = [(0, 0.0, 0, 0)] * (len(par) + 1)
+    dp: list[State] = [(0, 0.0, 0, 0)] * (len(par) + 1)
     for i in range(1, len(par) + 1):
         k, best, sum_x2, sum_x, x = -1, float("inf"), 0, 0, 0
         for j in range(i - 1, -1, -1):
