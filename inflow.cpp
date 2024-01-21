@@ -209,17 +209,17 @@ void parse_prefix(ls const &lines, ll width) {
   width -= prefix.size();
   for (auto &line : lines) {
     std::string new_line = line.substr(prefix.size());
-    if (new_line.size() > 0) {
+    if (not new_line.empty()) {
       par.push_back(new_line);
     } else {
-      if (par.size() > 0) {
+      if (not par.empty()) {
         process(par, width, prefix);
       }
       par.clear();
       std::cout << prefix << "\n";
     }
   }
-  if (par.size() > 0) {
+  if (not par.empty()) {
     process(par, width, prefix);
   }
 }
@@ -236,17 +236,17 @@ int main(int argc, char *argv[]) {
   ls lines;
   std::string prefix;
   for (std::string line; getline(std::cin, line);) {
-    if (line.size() > 0) {
+    if (not line.empty()) {
       lines.push_back(line);
     } else {
-      if (lines.size() > 0) {
+      if (not lines.empty()) {
         parse_prefix(lines, width);
       }
       lines.clear();
       std::cout << '\n';
     }
   }
-  if (lines.size() > 0) {
+  if (not lines.empty()) {
     parse_prefix(lines, width);
   }
 
