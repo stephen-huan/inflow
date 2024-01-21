@@ -36,7 +36,7 @@ inline bool cmp(pi const &x, pi const &y) {
   return det(x, y) < 0;
 }
 
-std::pair<li, ll> get_lines(ls const &para, ll width) {
+std::pair<li, ll> get_lines(ls const &par, ll width) {
   /* Compute optimal line lengths with forward greedy. */
   std::size_t i;
   ll num, x, v, chars;
@@ -44,14 +44,14 @@ std::pair<li, ll> get_lines(ls const &para, ll width) {
   num = 0;
   chars = 0;
   li lines = {0};
-  while (i < para.size()) {
+  while (i < par.size()) {
     x = 0;
-    v = para[i].size();
+    v = par[i].size();
     num++;
-    while (v <= width and i + 1 < para.size()) {
+    while (v <= width and i + 1 < par.size()) {
       i++;
       x = v;
-      v += 1 + para[i].size();
+      v += 1 + par[i].size();
       lines.push_back(num);
     }
     chars += x;
@@ -64,18 +64,18 @@ std::pair<li, ll> get_lines(ls const &para, ll width) {
   return std::make_pair(lines, chars);
 }
 
-std::vector<pi> vardp(ls const &para, li const &lines, ll width) {
+std::vector<pi> vardp(ls const &par, li const &lines, ll width) {
   /* Computes the minimum variance, constrained to use optimal lines.
    * Minimizing variance is equivalent to minimizing the sum of squares,
    * if the number of lines is constrained. */
   std::vector<pi> dp = {std::make_pair(0, 0)};
   ll j, x, v, k, sum_x2, sum_x2j;
-  for (size_t i = 1; i < para.size() + 1; i++) {
+  for (size_t i = 1; i < par.size() + 1; i++) {
     k = 0;
     x = 0;
     sum_x2 = INF;
     for (j = i - 1; j >= 0; j--) {
-      v = x + (x != 0) + para[j].size();
+      v = x + (x != 0) + par[j].size();
       if (v <= width) {
         x = v;
         sum_x2j = dp[j].second;
@@ -93,12 +93,12 @@ std::vector<pi> vardp(ls const &para, li const &lines, ll width) {
   return dp;
 }
 
-ll process_dp(ls const &para, li const &lines, ll chars,
+ll process_dp(ls const &par, li const &lines, ll chars,
               std::vector<pi> const &dp, ll width) {
   /* Finds an ending index to minimize variance, ignoring the last line. */
   // if the paragraph is less than three lines long, don't ignore the last line
   if (lines.back() <= 3) {
-    return para.size();
+    return par.size();
   }
   ll x, kl, kg;
   pi bestl, bestg, mean, var;
@@ -109,8 +109,8 @@ ll process_dp(ls const &para, li const &lines, ll chars,
   kl = 0;
   kg = 0;
   x = 0;
-  for (size_t i = para.size() - 1; i >= 0; i--) {
-    x += (x != 0) + para[i].size();
+  for (size_t i = par.size() - 1; i >= 0; i--) {
+    x += (x != 0) + par[i].size();
     if (x > width) {
       break;
     }
@@ -139,7 +139,7 @@ std::pair<ls, std::string> parse_prefix(ls const &lines, ll width) {
   /* Parses lines into a vector of tokens, taking into account prefixes. */
   // find prefix, where a prefix is defined as a series
   // of the same character, if the character is in PREFIX
-  ls para;
+  ls par;
   std::string prefix;
   bool end = false;
   for (size_t ch = 0; ch < lines[0].size(); ch++) {
@@ -169,28 +169,28 @@ std::pair<ls, std::string> parse_prefix(ls const &lines, ll width) {
           std::cout << "AssertionError: word too long: " + token << std::endl;
         }
         assert((ll)token.size() <= width);
-        para.push_back(token);
+        par.push_back(token);
       }
     }
   }
-  return std::make_pair(para, prefix);
+  return std::make_pair(par, prefix);
 }
 
 void process(ls const &lines, ll width) {
   /* Processes lines into a final paragraph and prints it out. */
-  ls para;
+  ls par;
   std::string prefix;
   std::vector<pi> dp;
   ll chars;
   size_t k;
   li line_lengths;
   std::vector<size_t> out;
-  tie(para, prefix) = parse_prefix(lines, width);
+  tie(par, prefix) = parse_prefix(lines, width);
   // don't include prefix
   width -= prefix.size();
-  tie(line_lengths, chars) = get_lines(para, width);
-  dp = vardp(para, line_lengths, width);
-  k = process_dp(para, line_lengths, chars, dp, width);
+  tie(line_lengths, chars) = get_lines(par, width);
+  dp = vardp(par, line_lengths, width);
+  k = process_dp(par, line_lengths, chars, dp, width);
 
   // generate indexes in reverse order
   out = {k};
@@ -201,17 +201,17 @@ void process(ls const &lines, ll width) {
   for (size_t i = out.size() - 1; i > 0; i--) {
     std::cout << prefix;
     for (size_t j = out[i]; j < out[i - 1] - 1; j++) {
-      std::cout << para[j] << ' ';
+      std::cout << par[j] << ' ';
     }
-    std::cout << para[out[i - 1] - 1] << '\n';
+    std::cout << par[out[i - 1] - 1] << '\n';
   }
   // print last line, if it exists
-  if (k < para.size()) {
+  if (k < par.size()) {
     std::cout << prefix;
-    for (size_t i = k; i < para.size() - 1; i++) {
-      std::cout << para[i] << ' ';
+    for (size_t i = k; i < par.size() - 1; i++) {
+      std::cout << par[i] << ' ';
     }
-    std::cout << para.back() << '\n';
+    std::cout << par.back() << '\n';
   }
 }
 
