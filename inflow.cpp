@@ -145,16 +145,14 @@ void process(ls const &lines, ll width, std::string prefix) {
   std::vector<size_t> out;
   // load lines into words
   for (auto &line : lines) {
-    std::istringstream ss(line);
-    if (line.size() != 0) {
-      std::string token;
-      while (ss >> token) {
-        if ((ll)token.size() > width) {
-          std::cout << "AssertionError: word too long: " + token << std::endl;
-        }
-        assert((ll)token.size() <= width);
-        par.push_back(token);
+    std::istringstream ss(line.substr(1));
+    std::string token;
+    while (ss >> token) {
+      if ((ll)token.size() > width) {
+        std::cout << "AssertionError: word too long: " + token << std::endl;
       }
+      assert((ll)token.size() <= width);
+      par.push_back(token);
     }
   }
   tie(line_lengths, chars) = get_lines(par, width);
