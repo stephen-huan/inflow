@@ -135,33 +135,17 @@ ll process_dp(ls const &par, li const &lines, ll chars,
   return (bestl.second != 0) ? kl : kg;
 }
 
-std::pair<ls, std::string> parse_prefix(ls const &lines, ll width) {
-  /* Parses lines into a vector of tokens, taking into account prefixes. */
-  // find prefix, where a prefix is defined as a series
-  // of the same character, if the character is in PREFIX
+void process(ls const &lines, ll width, std::string prefix) {
+  /* Processes lines into a final paragraph and prints it out. */
   ls par;
-  std::string prefix;
-  bool end = false;
-  for (size_t ch = 0; ch < lines[0].size(); ch++) {
-    if (PREFIX.find(lines[0][ch]) == PREFIX.end()) {
-      break;
-    }
-    for (auto &line : lines) {
-      if (ch >= line.size() or line[ch] != lines[0][ch]) {
-        end = true;
-        break;
-      }
-    }
-    if (end) {
-      break;
-    } else {
-      prefix += lines[0][ch];
-    }
-  }
-  // remove prefix from each line and load into tokens
-  width -= prefix.size();
+  std::vector<pi> dp;
+  ll chars;
+  size_t k;
+  li line_lengths;
+  std::vector<size_t> out;
+  // load lines into words
   for (auto &line : lines) {
-    std::istringstream ss(line.substr(prefix.size()));
+    std::istringstream ss(line);
     if (line.size() != 0) {
       std::string token;
       while (ss >> token) {
@@ -173,21 +157,6 @@ std::pair<ls, std::string> parse_prefix(ls const &lines, ll width) {
       }
     }
   }
-  return std::make_pair(par, prefix);
-}
-
-void process(ls const &lines, ll width) {
-  /* Processes lines into a final paragraph and prints it out. */
-  ls par;
-  std::string prefix;
-  std::vector<pi> dp;
-  ll chars;
-  size_t k;
-  li line_lengths;
-  std::vector<size_t> out;
-  tie(par, prefix) = parse_prefix(lines, width);
-  // don't include prefix
-  width -= prefix.size();
   tie(line_lengths, chars) = get_lines(par, width);
   dp = vardp(par, line_lengths, width);
   k = process_dp(par, line_lengths, chars, dp, width);
@@ -215,6 +184,48 @@ void process(ls const &lines, ll width) {
   }
 }
 
+void parse_prefix(ls const &lines, ll width) {
+  /* Parses lines into a vector of tokens, taking into account prefixes. */
+  // find prefix, where a prefix is defined as a series
+  // of the same character, if the character is in PREFIX
+  ls par;
+  std::string prefix;
+  bool end = false;
+  for (size_t ch = 0; ch < lines[0].size(); ch++) {
+    if (PREFIX.find(lines[0][ch]) == PREFIX.end()) {
+      break;
+    }
+    for (auto &line : lines) {
+      if (ch >= line.size() or line[ch] != lines[0][ch]) {
+        end = true;
+        break;
+      }
+    }
+    if (end) {
+      break;
+    } else {
+      prefix += lines[0][ch];
+    }
+  }
+  // remove prefix from each line
+  width -= prefix.size();
+  for (auto &line : lines) {
+    std::string new_line = line.substr(prefix.size());
+    if (new_line.size() > 0) {
+      par.push_back(new_line);
+    } else {
+      if (par.size() > 0) {
+        process(par, width, prefix);
+      }
+      par.clear();
+      std::cout << prefix << "\n";
+    }
+  }
+  if (par.size() > 0) {
+    process(par, width, prefix);
+  }
+}
+
 int main(int argc, char *argv[]) {
   // fast cin
   std::ios::sync_with_stdio(false);
@@ -225,19 +236,20 @@ int main(int argc, char *argv[]) {
 
   // read input into paragraph blocks, maintaing empty lines
   ls lines;
+  std::string prefix;
   for (std::string line; getline(std::cin, line);) {
     if (line.size() > 0) {
       lines.push_back(line);
     } else {
       if (lines.size() > 0) {
-        process(lines, width);
+        parse_prefix(lines, width);
       }
       lines.clear();
       std::cout << '\n';
     }
   }
   if (lines.size() > 0) {
-    process(lines, width);
+    parse_prefix(lines, width);
   }
 
   return 0;
