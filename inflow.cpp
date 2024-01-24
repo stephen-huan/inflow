@@ -145,7 +145,7 @@ void process(ls const &lines, ll width, std::string prefix) {
   std::vector<size_t> out;
   // load lines into words
   for (auto &line : lines) {
-    std::istringstream ss(line.substr(1));
+    std::istringstream ss(line);
     std::string token;
     while (ss >> token) {
       if ((ll)token.size() > width) {
