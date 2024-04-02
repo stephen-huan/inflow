@@ -15,6 +15,11 @@ A previous version of this program was called `far`.
 See [far: a (f)ast re-write of the Unix utility
 p(ar)](https://cgdct.moe/blog/far/) for more information.
 
+## Installation
+
+Inflow is packaged in
+[nixpkgs](https://github.com/NixOS/nixpkgs) as `pkgs.inflow`.
+
 ## Editor integration
 
 - (neo)vim: set `formatprg` to `inflow` or `inflow 72`
