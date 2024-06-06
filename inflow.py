@@ -135,7 +135,12 @@ def parse_lines(lines: Iterable[str], width: int) -> list[Block]:
     return pars
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Command-line interface."""
     # read command line arguments - one parameter, width
     width = int(sys.argv[1]) if len(sys.argv) > 1 else 79
     print("\n".join(map(lambda x: process(*x), parse_lines(sys.stdin, width))))
+
+
+if __name__ == "__main__":
+    main()
