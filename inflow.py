@@ -1,4 +1,5 @@
 import sys
+from collections.abc import Iterable
 
 Block = tuple[list[str], int, str]
 State = tuple[int, float, int, int]
@@ -118,7 +119,7 @@ def parse_prefix(lines: list[str], width: int) -> list[Block]:
         ]
 
 
-def parse_lines(lines, width: int) -> list[Block]:
+def parse_lines(lines: Iterable[str], width: int) -> list[Block]:
     """Read input lines into paragraphs, making empty lines []."""
     pars, par = [], []
     for line in lines:
