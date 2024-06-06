@@ -1,5 +1,6 @@
+__pycache__/
 .direnv/
 dist/
-src/inflow_reflow.egg-info/
+src/*.egg-info/
 venv/
 a.out

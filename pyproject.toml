@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-inflow"
+version = "1.0.1"
+authors = [{ name = "Stephen Huan", email = "stephen.huan@cgdct.moe" }]
+description = "A variance-optimal paragraph formatter"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: The Unlicense (Unlicense)",
+    "Operating System :: OS Independent",
+    "Topic :: Text Editors :: Text Processing",
+    "Topic :: Text Processing :: Filters",
+]
+
+[project.urls]
+Homepage = "https://cgdct.moe/blog/far/"
+Repository = "https://github.com/stephen-huan/inflow"
+Issues = "https://github.com/stephen-huan/inflow/issues"
+
+[project.scripts]
+inflow = "inflow:main"
+
+
+[tool.pyright]
+exclude = [".direnv"]
+
+[tool.ruff]
+line-length = 79
+
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
