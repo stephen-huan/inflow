@@ -109,7 +109,7 @@ ll process_dp(ls const &par, li const &lines, ll chars,
   kl = 0;
   kg = 0;
   x = 0;
-  for (size_t i = par.size() - 1; i >= 0; i--) {
+  for (size_t i = par.size() - 1;; i--) {
     x += (x != 0) + par[i].size();
     if (x > width) {
       break;
