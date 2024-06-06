@@ -18,7 +18,8 @@ p(ar)](https://cgdct.moe/blog/far/) for more information.
 ## Installation
 
 Inflow is packaged in
-[nixpkgs](https://github.com/NixOS/nixpkgs) as `pkgs.inflow`.
+[Nixpkgs](https://github.com/NixOS/nixpkgs) as `pkgs.inflow` and
+[PyPi](https://pypi.org/project/python-inflow/) as `python-inflow`.
 
 ## Editor integration
 
