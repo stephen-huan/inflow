@@ -21,6 +21,18 @@
         linters = with pkgs; [ nodePackages.pyright clang-tools ruff statix ];
       in
       {
+        packages.${system} = {
+          default = pkgs.inflow.overrideAttrs {
+            src = ./.;
+            env.NIX_CFLAGS_COMPILE = "-Werror";
+          };
+          python-inflow = (
+            pkgs.python3Packages.callPackage ./pkgs/python-inflow { }
+          ).overrideAttrs {
+            src = ./.;
+          };
+        };
+
         formatter.${system} = pkgs.writeShellApplication {
           name = "formatter";
           runtimeInputs = formatters;
@@ -49,7 +61,11 @@
           installPhase = "touch $out";
         };
 
-        devShells.${system}.default = pkgs.mkShell {
+        devShells.${system}.default = (pkgs.mkShellNoCC.override {
+          stdenv = pkgs.stdenvNoCC.override {
+            initialPath = [ pkgs.coreutils ];
+          };
+        }) {
           packages = [
             pkgs.twine
             python'

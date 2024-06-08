@@ -1,6 +1,7 @@
-__pycache__/
 .direnv/
+result
+__pycache__/
 dist/
-src/*.egg-info/
+build/
+*.egg-info/
 venv/
-a.out

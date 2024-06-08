@@ -27,7 +27,7 @@ inflow = "inflow:main"
 
 
 [tool.pyright]
-exclude = [".direnv"]
+exclude = [".direnv", "result"]
 
 [tool.ruff]
 line-length = 79
@@ -38,3 +38,4 @@ line-length = 79
 [tool.isort]
 profile = "black"
 line_length = 79
+extend_skip = ["result"]
