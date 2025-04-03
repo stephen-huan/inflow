@@ -5,7 +5,7 @@ Block = tuple[list[str], int, str]
 State = tuple[int, float, int, int]
 
 # characters allowed to be in a prefix
-PREFIX = set(" >:-*|#$%'\"")
+PREFIX = set(" >:-*|#$%'\"/")
 
 
 def get_lines(par: list[str], width: int) -> list[int]:

@@ -15,7 +15,7 @@ typedef std::pair<ll, ll> pi;
 const ll INF = std::numeric_limits<ll>::max();
 // characters allowed to be in a prefix
 const std::unordered_set<char> PREFIX = {
-    ' ', '>', ':', '-', '*', '|', '#', '$', '%', '"', '\'',
+    ' ', '>', ':', '-', '*', '|', '#', '$', '%', '"', '\'', '/'
 };
 
 // fraction methods
