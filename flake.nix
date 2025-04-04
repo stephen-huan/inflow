@@ -3,7 +3,7 @@
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-  outputs = { nixpkgs, ... }:
+  outputs = { self, nixpkgs }:
     let
       inherit (nixpkgs) lib;
       systems = lib.systems.flakeExposed;
@@ -18,7 +18,7 @@
           keyring-pass
         ]);
         formatters = with pkgs; [ black isort clang-tools nixpkgs-fmt ];
-        linters = with pkgs; [ nodePackages.pyright clang-tools ruff statix ];
+        linters = with pkgs; [ pyright clang-tools ruff statix ];
       in
       {
         packages.${system} = {
