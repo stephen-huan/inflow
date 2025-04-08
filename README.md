@@ -24,4 +24,4 @@ Inflow is packaged in
 ## Editor integration
 
 - (neo)vim: set `formatprg` to `inflow` or `inflow 72`
-- emacs: [far.el](https://github.com/eshrh/far.el)
+- emacs: [inflow.el](https://github.com/eshrh/inflow.el)
