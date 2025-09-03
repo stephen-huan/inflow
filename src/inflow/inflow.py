@@ -1,8 +1,10 @@
 import sys
 from collections.abc import Iterable
+from math import ceil, comb, log
 
 Block = tuple[list[str], int, str]
-State = tuple[int, float, int, int]
+Moments = tuple[int, ...]
+State = tuple[int, Moments]
 
 # characters allowed to be in a prefix
 PREFIX = set(" >:-*|#$%'\"/")
@@ -26,29 +28,33 @@ def get_lines(par: list[str], width: int) -> list[int]:
     return lines
 
 
-def vardp(par: list[str], lines: list[int], width: int) -> list[State]:
+def vardp(
+    par: list[str], lines: list[int], width: int, p: int = 2
+) -> list[State]:
     """Computes the minimum variance, constrained to use optimal lines."""
-    # state (index, variance, sum of x^2 terms, sum of x)
-    dp: list[State] = [(0, 0.0, 0, 0)] * (len(par) + 1)
+    # state (index, running sum of moments)
+    dp: list[State] = [(0, (0,) * (p + 1))] * (len(par) + 1)
     for i in range(1, len(par) + 1):
-        k, best, sum_x2, sum_x, x = -1, float("inf"), 0, 0, 0
+        k, best, moments, x = -1, (float("inf"),) * (p + 1), (0,) * (p + 1), 0
         for j in range(i - 1, -1, -1):
             # add 1 for space, if the current line isn't empty
             line_width = x + (x != 0) + len(par[j])
             if line_width <= width:
                 x = line_width
-                _, _, sum_x2j, sum_xj = dp[j]
+                _, old_moments = dp[j]
                 n = 1 + lines[j]
-                sum_x2j += x * x
-                sum_xj += x
-                # Var[X] = E[X^2] - E[X]^2
-                mean = sum_xj / n
-                var = sum_x2j / n - mean * mean
-                if var < best and n == lines[i]:
-                    k, best, sum_x2, sum_x = j, var, sum_x2j, sum_xj
+                new_moments = list(old_moments)
+                y = 1
+                for ell in range(p + 1):
+                    new_moments[ell] += y
+                    y *= x
+                new_moments = tuple(new_moments)
+                key = tuple(reversed(new_moments))
+                if key < best and n == lines[i]:
+                    k, best, moments = j, key, new_moments
             else:
                 break
-        dp[i] = (k, best, sum_x2, sum_x)
+        dp[i] = (k, moments)
 
     return dp
 
@@ -60,7 +66,9 @@ def process(par: list[str], width: int, prefix: str) -> str:
     assert max(map(len, par)) <= width, "line too long"
 
     lines = get_lines(par, width)
-    dp = vardp(par, lines, width)
+    # convservative bound
+    p = ceil(width * log(len(par)))
+    dp = vardp(par, lines, width, p=p)
     # if the paragraph is less than 3 lines long, don't ignore the last line
     if lines[-1] <= 3:
         k = len(par)
@@ -70,9 +78,23 @@ def process(par: list[str], width: int, prefix: str) -> str:
             x += (x != 0) + len(par[i])
             if x > width:
                 break
-            b = x <= dp[i][-1] / lines[i]
-            if lines[i] + 1 == lines[-1] and dp[i][1] < best[b]:
-                best[b], k[b] = dp[i][1], i
+            moments = dp[i][1]
+            n = moments[0]
+            assert (
+                n == lines[i]
+            ), f"moments {n} don't match number of lines {lines[i]}."
+            b = x <= moments[1] / n
+            # key = moments[2] / n - (moments[1] / n) ** 2  # variance
+            # key = moments[2] / n - 2 * width * (moments[1] / n)  # l2
+            key = (
+                sum(
+                    comb(p, j) * pow(-1, j) * moments[j] * pow(width, p - j)
+                    for j in range(p + 1)
+                )
+                / n
+            )
+            if n + 1 == lines[-1] and key < best[b]:
+                best[b], k[b] = key, i
         k = k[1] if best[1] != float("inf") else k[0]
 
     out, i = [], k
